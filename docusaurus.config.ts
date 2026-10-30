@@ -5,8 +5,8 @@ import type * as Preset from '@docusaurus/preset-classic';
 // This runs in Node.js - Don't use client-side code here (browser APIs, JSX...)
 
 const config: Config = {
-  title: '弥乐帮助文档',
-  tagline: '弥乐 Android 使用指南与故障排查',
+  title: '弥乐文档',
+  tagline: '弥乐 Android、Windows 与 Linux 使用指南',
   favicon: 'img/logo.png',
 
   // Future flags, see https://docusaurus.io/docs/api/docusaurus-config#future
@@ -86,7 +86,7 @@ const config: Config = {
         },
         {
           href: 'https://github.com/lladlam/MeloX-Android',
-          label: 'GitHub',
+          label: 'Android GitHub',
           position: 'right',
         },
       ],
@@ -116,8 +116,16 @@ const config: Config = {
           title: '更多',
           items: [
             {
-              label: '发布下载',
+              label: 'Android 发布下载',
               href: 'https://github.com/lladlam/MeloX-Android/releases',
+            },
+            {
+              label: 'Windows 项目',
+              href: 'https://github.com/lladlam/MeloX-Windows',
+            },
+            {
+              label: 'Linux 项目',
+              href: 'https://github.com/lladlam/MeloX-Linux',
             },
           ],
         },

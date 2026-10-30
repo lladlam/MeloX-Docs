@@ -17,7 +17,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: '开始使用',
-      items: ['start', 'installation', 'first-launch'],
+      items: ['start', 'platforms', 'installation', 'first-launch'],
     },
     {
       type: 'category',

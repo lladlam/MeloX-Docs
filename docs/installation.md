@@ -1,9 +1,11 @@
 ---
-title: 下载与安装
+title: Android 下载与安装
 sidebar_position: 2
 ---
 
-# 下载与安装
+# Android 下载与安装
+
+本页仅适用于 Android APK。Windows 与 Linux 客户端的状态和入口见[平台与版本状态](platforms)。
 
 ## 下载正式版
 

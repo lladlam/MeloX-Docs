@@ -5,6 +5,8 @@ sidebar_position: 3
 
 # 隐私与日志
 
+本文中的“设置 → 关于”导出步骤适用于 Android。桌面版本地数据目录、日志位置和导出能力请查看 [Windows](https://github.com/lladlam/MeloX-Windows) 或 [Linux](https://github.com/lladlam/MeloX-Linux) 仓库说明。
+
 弥乐可能在设备本地保存音源账号状态、播放记录、偏好设置、缓存和第三方源配置，以提供应用功能。联网使用音乐服务、脚本、云控或设备连接时，会向相应服务发送完成该功能所需的请求；第三方服务受其自身隐私政策和运营规则约束。
 
 ## 导出日志

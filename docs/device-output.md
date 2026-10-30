@@ -5,6 +5,8 @@ sidebar_position: 4
 
 # 输出设备、DLNA 与 MiPlay
 
+本页说明 Android 播放设备面板中的功能；Windows/Linux 桌面音频路由请参考各自项目说明。
+
 播放器的“播放设备”入口用于选择手机扬声器或当前连接的外部输出。Android 系统蓝牙/有线设备由系统音频路由管理；弥乐还支持 DLNA 渲染器和部分小米 MiPlay 接收设备。USB 独占有单独的实验性驱动路径，见 [USB 独占输出](usb-audio)。
 
 ## DLNA 音箱或电视
