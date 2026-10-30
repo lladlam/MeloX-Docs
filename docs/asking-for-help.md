@@ -1,13 +1,35 @@
 ---
 title: 如何有效反馈问题
 sidebar_position: 2
+toc_min_heading_level: 2
+toc_max_heading_level: 3
 ---
 
 # 如何有效反馈问题
 
 弥乐由不同平台的独立项目组成。维护者需要先知道你用的是哪个项目、哪个版本，以及问题是怎样发生的。把这些信息一次说清楚，通常比“不能用了，求修复”更容易得到有用回应。
 
-> **本页是提问指南，不是弥乐支持服务。** 请在对应平台的公开渠道反馈；本指南的作者和《提问的智慧》原作者都不负责弥乐的技术支持。
+<div className="help-guide-quickstart">
+  <div className="help-guide-quickstart-heading">
+    <span className="help-guide-eyebrow">快速开始</span>
+    <strong>一份可调查的问题报告</strong>
+    <span>先选对项目，再按顺序交代环境、步骤和结果。</span>
+  </div>
+  <div className="help-guide-steps">
+    <div><b>01</b><strong>选平台</strong><span>Android / Windows / Linux</span></div>
+    <div><b>02</b><strong>写现象</strong><span>预期、实际、复现步骤</span></div>
+    <div><b>03</b><strong>附证据</strong><span>版本、错误信息、必要日志</span></div>
+  </div>
+  <div className="help-guide-projects" aria-label="选择问题反馈项目">
+    <a href="https://github.com/lladlam/MeloX-Android/issues"><span>Android</span><b>反馈问题 <span aria-hidden="true">↗</span></b></a>
+    <a href="https://github.com/lladlam/MeloX-Windows/issues"><span>Windows</span><b>反馈问题 <span aria-hidden="true">↗</span></b></a>
+    <a href="https://github.com/lladlam/MeloX-Linux/issues"><span>Linux</span><b>反馈问题 <span aria-hidden="true">↗</span></b></a>
+  </div>
+</div>
+
+:::caution 先确认反馈边界
+**本页是提问指南，不是弥乐支持服务。** 请在对应平台的公开渠道反馈；本指南的作者和《提问的智慧》原作者都不负责弥乐的技术支持。提交 Issue 不代表获得排期或回复。
+:::
 
 本页参考 [《提问的智慧》中文指南](https://github.com/ryanhanwu/How-To-Ask-Questions-The-Smart-Way/blob/main/README-zh_CN.md) 的通用建议，并按弥乐的项目结构补充平台、版本、播放设备和日志信息。这里只借鉴原则，不替代或复刻上游全文。
 
@@ -103,6 +125,8 @@ sidebar_position: 2
 
 ## 可直接复制的模板
 
+下面的模板可以直接粘贴到对应平台的 Issue。只保留相关字段；不知道的写“不清楚”，不要猜。
+
 ```text
 标题：<平台 / 功能：具体现象>
 
@@ -168,6 +192,10 @@ sidebar_position: 2
 如果找到临时绕过方法，也请明确它是 workaround，不要把它说成根因已经修复。应用更新后再验证一次；确认解决后回到原问题报告结果。
 
 ## 日志与隐私
+
+:::danger 发布前先检查
+日志、截图和复制的链接都可能暴露账号或个人信息。**先检查，再上传**；不要公开密码、Cookie、Token、API Key、私有播放链接或家庭服务器地址。
+:::
 
 日志可能包含账号状态、歌曲或播放信息、请求 URL、设备信息和第三方服务响应。即使应用会对部分字段脱敏，也不要假设日志完全匿名。
 
