@@ -16,7 +16,7 @@ sidebar_position: 1
 - [首次启动](first-launch)：完成欢迎流程、隐私说明和基础设置。
 - [音乐音源](music-sources)：了解内置音源和第三方音源脚本。
 - [播放与歌词](playback-and-lyrics)：音质、播放队列、歌词与播放问题。
-- [局域网一起放](lan-cast) · [USB 独占输出](usb-audio)
+- [输出设备、DLNA 与 MiPlay](device-output) · [局域网互联](lan-cast) · [USB 独占输出](usb-audio)
 - [故障排查](troubleshooting) · [隐私与日志](privacy-and-logs) · [常见问题](faq)
 
 ## 版本与支持

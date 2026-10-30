@@ -24,7 +24,7 @@ sidebar_position: 2
 
 ## 正式版与开发版
 
-开发版发布在 [`dev-latest`](https://github.com/lladlam/MeloX-Android/releases/tag/dev-latest)，用于体验尚未进入正式版的改动。开发版使用 Android debug 签名，与正式版签名不同：**不能覆盖安装在正式版之上**。开发版也可能存在未完成或回归问题。
+开发版发布在 [`dev-latest`](https://github.com/lladlam/MeloX-Android/releases/tag/dev-latest)，用于体验尚未进入正式版的改动。开发版使用 `.dev` 独立包名和 Android debug 签名，通常可与正式版并存，但不能覆盖正式版安装。开发版也可能存在未完成或回归问题；不同构建机生成的 debug 签名可能不同，旧开发版不一定能被新开发版直接覆盖。
 
 ## 安装失败时
 

@@ -22,7 +22,7 @@ const sidebars: SidebarsConfig = {
     {
       type: 'category',
       label: '功能指南',
-      items: ['music-sources', 'playback-and-lyrics', 'downloads', 'lan-cast', 'usb-audio'],
+      items: ['music-sources', 'playback-and-lyrics', 'downloads', 'device-output', 'lan-cast', 'usb-audio'],
     },
     {
       type: 'category',
