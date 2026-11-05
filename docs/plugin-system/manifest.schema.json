@@ -1,0 +1,16 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://melox.invalid/plugin/manifest-v1.schema.json",
+  "title": "MeloX plugin manifest v1 (draft)",
+  "type": "object",
+  "required": ["id", "name", "version", "apiVersion", "entry", "capabilities"],
+  "properties": {
+    "id": { "type": "string", "maxLength": 121, "pattern": "^[a-z0-9]+(?:-[a-z0-9]+)*(?:\\.[a-z0-9]+(?:-[a-z0-9]+)*)+$" },
+    "name": { "type": "string", "minLength": 1, "maxLength": 120, "pattern": "\\S" },
+    "version": { "type": "string", "maxLength": 80, "pattern": "^[0-9]+\\.[0-9]+\\.[0-9]+(?:-[0-9A-Za-z.-]+)?$" },
+    "apiVersion": { "const": 1 },
+    "entry": { "type": "string", "maxLength": 512, "pattern": "^[A-Za-z0-9_-][A-Za-z0-9_.-]*(?:/[A-Za-z0-9_-][A-Za-z0-9_.-]*)*\\.js$" },
+    "capabilities": { "type": "array", "uniqueItems": true, "items": { "enum": ["search", "playback", "lyrics"] } },
+    "networkDomains": { "type": "array", "maxItems": 32, "uniqueItems": true, "items": { "type": "string", "maxLength": 253 } }
+  }
+}

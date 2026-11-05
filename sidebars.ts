@@ -26,6 +26,11 @@ const sidebars: SidebarsConfig = {
     },
     {
       type: 'category',
+      label: '插件开发（预览）',
+      items: ['plugin-system/index', 'plugin-system/sdk', 'plugin-system/protocol-v1', 'plugin-system/runtime-and-security'],
+    },
+    {
+      type: 'category',
       label: '帮助与支持',
       items: ['troubleshooting', 'asking-for-help', 'privacy-and-logs', 'faq'],
     },
