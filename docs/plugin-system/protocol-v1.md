@@ -1,94 +1,36 @@
-# Plugin API v1：当前协议与接入关系
+# Plugin API v1：协议与能力
 
-## 实现状态
+API v1 使用标准 JSON 对象；插件负责平台字段和错误转换，宿主不直接读取第三方平台响应。SDK 的 [TypeScript 接口](https://github.com/lladlam/MeloX-Android/blob/main/plugin-sdk/src/types.ts)、[Manifest schema](./manifest.schema.json) 和 [响应 schema](./protocol-v1.schema.json) 定义字段；实际网络权限、资源上限和跨字段条件由宿主另行检查。
 
-此文描述当前源码，不代表真机已验证。当前 Manifest 仅授予 Search、Playback、Lyrics。
-其他能力在文末列为未完成，不能声明后以空数据冒充支持。
+## 能力与必需方法
 
-```text
-第三方 API / 授权测试服务
-  → 插件默认导出对象（全部平台适配）
-  → SDK 打包生成 globalThis.meloxPlugin
-  → PluginIsolatedService（QuickJS + 独立 UID）
-  ↔ PluginRuntime ↔ PluginHttpBroker / PluginStorage
-  → PluginMusicProvider（标准字段校验与类型映射）
-  → MusicProviderRegistry / 共享 DynamicMusicProviders
-  → SearchScreen / ProviderPlaybackCommands / MeloXProviderLyricsLoader
-  → ProviderPlaybackResolver → PluginMediaDataSource → Media3
-```
-
-宿主不读取第三方平台的 songmid、hash、privilege、VIP 字段；只接受 SDK 标准数据。
-平台错误到标准错误/播放不可用状态的转换也由插件完成。
-
-## 协议契约
-
-- [Manifest Schema](./manifest.schema.json)：Manifest 结构。
-- [Protocol v1 Schema](./protocol-v1.schema.json)：搜索、歌曲、音质、播放、歌词结构。
-- SDK TypeScript 接口与 `definePlugin`、`PluginError`：见[SDK 文档](./sdk.md)。
-- `PluginManifestParser` / `PluginResultValidator` / `PluginMusicProvider`：Android 校验与映射。
-- `plugin-sdk/test/fixtures/manifest-cases.json`：SDK 与 Kotlin 共用的接受/拒绝用例。
-
-当前没有从 Schema 自动生成全部 Kotlin/TypeScript 代码；完整模型的双端一致性验证仍待完成。
-Manifest 用例一致性不能代表所有返回类型都已一致。
-
-接口只传 JSON；不依赖 Android Bundle、MediaItem、CookieManager 或 Compose 类型，便于后续
-Windows/Web 实现独立的 Host Context。当前仓库不提供这两个平台的运行时。
-
-## Manifest
-
-参考 [SDK 文档中的 Manifest 示例](./sdk.md)和 [CC0 测试音插件源码](https://github.com/lladlam/MeloX-Android/tree/main/plugin-sdk/examples/test-tone)。
-
-| 字段 | 约束 |
+| Manifest capability | 插件方法 |
 | --- | --- |
-| `id` | 稳定的小写分段 ID，如 `org.example.music`；宿主添加 `plugin:` 命名空间 |
-| `name` | 非空，最多 120 字符 |
-| `version` | SemVer，最大 80 字符；当前不接受 `+build` 元数据 |
-| `apiVersion` | 数字 `1`，不接受字符串或其他版本 |
-| `entry` | ZIP 内相对 `.js` 路径，无绝对路径、反斜杠、`.`/`..` |
-| `capabilities` | 去重数组，目前只允许 `search`、`playback`、`lyrics` |
-| `networkDomains` | 精确的小写 ASCII 域名，不允许通配、IP literal、端口或协议 |
+| search | `search` |
+| playback | `resolvePlayback` |
+| lyrics | `lyrics` |
+| playlists | `playlists`, `searchPlaylists`, `playlistDetail` |
+| albums | `searchAlbums`, `albumDetail` |
+| artists | `searchArtists`, `artistDetail` |
+| rankings | `rankings`, `rankingTracks` |
+| homeFeed | `homeFeed` |
+| userLibrary | `accountSummary`, `userPlaylists`, `savedAlbums`, `followedArtists` |
+| favorites | `isFavorite`, `setFavorite` |
+| download | `resolveDownload` |
+| authentication | `authenticationStatus` |
 
-合法 ID 不等于已安装、可信或启用。来源身份不会因插件被卸载而重写为内置来源。
+只声明插件实际实现的能力；启用前宿主检查声明的方法。方法参数以 SDK 类型为准，`host` 始终是最后一个参数。参考 [catalog 示例](https://github.com/lladlam/MeloX-Android/tree/main/plugin-sdk/examples/catalog)。
 
-## 调用签名
+## Manifest 与数据
 
-```ts
-search(query, page, pageSize, host): Promise<MusicPage<MusicTrack>>
-resolvePlayback(track, quality, host): Promise<PlaybackResolution>
-lyrics(track, host): Promise<LyricsResult>
-```
+`id` 是小写分段标识，宿主生成 `plugin:` SourceId；`version` 为 SemVer，`apiVersion` 为数字 `1`，`entry` 是 ZIP 内相对 JS 路径。`networkDomains` 只允许精确声明的 HTTPS 主机；账号域名还需符合 authentication 配置。宿主以插件 SourceId 绑定歌曲、歌手和专辑身份。
 
-`host` 总是最后一个参数。每次调用重新加载入口；插件不能依赖上次调用留下的全局变量。
-额外未声明的方法不会自动成为宿主 UI 的能力。
+分页从 1 开始，pageSize 为 1–100，响应必须匹配请求并明确 `hasMore`；时间为毫秒，码率为 bit/s。`resolvePlayback`/`resolveDownload` 返回标准播放状态，渐进式 playable URL 和每次请求的 headers；可请求 `credential: "active"`，凭据由宿主按声明域名注入。HLS、DASH 和 DRM 不受支持。
 
-## 数据规则
+歌词使用按时间排序的行，包含 `timeMs`、`text`，可选翻译和罗马音。目录、推荐、收藏及下载的精确字段和可空性请以 schema 与 SDK 类型为准。共享 fixture 已用于 Kotlin、Schema 和隔离 QuickJS 子集；模型尚非代码生成，不能推断任意恶意输入均已覆盖。
 
-歌曲必须有 `id`、`title`、1–32 个带 `name` 的 `artists`。资源 ID 是不透明字符串，最大
-4096 UTF-8 字节。宿主将歌曲、歌手及专辑 ID 绑定到声明插件的 `SourceId`，插件不能指定
-另一个来源。SDK 不传 Android 的 `ProviderTrackMetadata`。
+## 认证与错误
 
-分页从 1 开始，每页 1–100 条；响应 `page/pageSize` 必须和请求一致，`items.length` 不能
-超过请求页长，`hasMore` 必须是布尔值。目前搜索 UI 只请求第一页，后续分页 UI 待接入。
+支持 `none`、`apiToken` 和 `oauth2Pkce`。OAuth 只支持公开客户端授权码 + S256 PKCE、系统浏览器和固定回调 `com.lladlam.melox.plugin:/oauth2redirect`；不支持 client secret、设备码或 WebView/Cookie 登录。宿主不向脚本暴露 Token，插件通过 `host.account` 获取不含凭据的账号摘要。真实浏览器及公网服务端到端验收仍待执行。
 
-`PlaybackResolution` 的 `type` 支持 playable、preview、loginRequired、subscriptionRequired、
-regionRestricted、copyrightRestricted、unavailable。playable 的 `headers` 映射到宿主
-`requestHeaders`；`quality` 请求参数和 `actualQuality` 返回值意义不同。URL 使用绝对 HTTPS，
-域名须在权限列表中；过期 URL 拒绝使用。不支持 DRM 或自定义 Media3 实现。
-
-歌词的 `timeMs` 是从歌曲开头计算的毫秒值，必须非递减；最多 2000 行。`text`、翻译和
-罗马音由插件转换。当前无逐字 transport，不能把行级歌词声称为精确逐字数据。
-
-当前图片请求尚未经过插件网络代理，Provider 会抑制插件封面，避免未经权限校验的 Coil 请求。
-标准 `total` 已定义但搜索映射暂未保留；此项和额外字段的完整映射见未完成清单。
-
-## 错误
-
-SDK 的 `PluginError` 提供稳定 code。JS 拒绝会返回错误码；未知异常转换为 PLUGIN_ERROR，
-原始异常堆栈和可能包含 Token 的信息不会写入全局日志。宿主当前将这些码包装成调用失败，
-尚未提供全部错误码对应的本地化 UI。
-
-## 尚未授予的能力
-
-Playlists、Albums、Artists、Rankings、HomeFeed、UserLibrary、Favorites、Download 和
-Authentication 尚未完成插件适配/UI 接入，不能写入当前 Manifest。SDK 的部分目录与认证
-类型是预备定义，不能据此认定 Android 已实现相应能力。
+通过 `PluginError` 返回受控错误码；不要把 Token、URL 参数或上游异常正文写入错误与日志。参见 [SDK 使用](./sdk.md) 和 [运行时安全](./runtime-and-security.md)。

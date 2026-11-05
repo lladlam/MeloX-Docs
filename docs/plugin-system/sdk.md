@@ -1,20 +1,38 @@
 # MeloX Plugin SDK — development preview
 
-This document describes the API-v1 JavaScript plugin SDK. Android integration is
-in development: **a successful SDK build does not establish that a plugin works
-on a device**. See the [current status](./index.md).
+RC package/security details and device automation: [RC acceptance](https://github.com/lladlam/MeloX-Android/blob/main/docs/plugin-system/rc-acceptance.md).
+API v1 is unchanged. Newly packed archives include an SHA-256 integrity file; optionally append
+`--sign-key /path/to/private.pem` to `pack` to sign it with an RSA 2048–4096-bit PKCS#8 PEM key.
+Keep private keys outside the repository and plugin ZIP. The host displays a public-key fingerprint;
+first-time trust requires independent verification, and a signature does not certify plugin safety.
+
+**Progressive audio only.** HLS (`.m3u8`/`hls`), DASH (`.mpd`/`dash`) and DRM/license configurations
+are unsupported and explicitly rejected by the Android host. Do not declare a playable resolution for
+content the host cannot decode; return an appropriate unavailable/rights state. Standard response schemas
+check structure; DNS, actual content MIME, account/domain authorization and resource limits are host policy.
+
+The SDK builds and packages API-v1 JavaScript plugins. Android host integration
+is under development: **a successful SDK build does not establish that the plugin
+works on a device**. See [verification](https://github.com/lladlam/MeloX-Android/blob/main/docs/plugin-system/verification.md).
 
 ## Supported host surface
 
-The current Android implementation accepts `search`, `playback` and `lyrics`.
-Other capability names are rejected at import, rather than advertised as working.
-Account UI, OAuth, credentials, catalog/library APIs and plugin downloads are
-not implemented. `authenticationStatus` and catalog summary types are provisional
-SDK definitions, not granted host capabilities.
+The Android source implements `search`, `playback`, `lyrics`, `playlists`, `albums`,
+`artists`, `rankings`, `homeFeed`, `userLibrary`, `favorites`, `download`, and
+`authentication`. These paths are connected to the existing Search, song-action,
+download and plugin Settings UI. API 35 emulator checks now cover runtime/Keystore and a synthetic
+Coil/Media3 path; **full capability UI, API 24, physical-device and OAuth acceptance remain incomplete**.
+The complete required-method table is `schema/manifest.schema.json` →
+`x-capability-methods`; Kotlin and SDK tests check this same contract.
+
+`examples/catalog` demonstrates every catalog capability using the CC0 test tone;
+`examples/api-token` demonstrates opaque credential requests using a **disposable**
+test token. See [catalog/authentication integration](https://github.com/lladlam/MeloX-Android/blob/main/docs/plugin-system/05-capabilities-and-authentication.md)
+for method signatures, account management, OAuth2/PKCE setup and limits.
 
 ## Build a plugin
 
-Node.js 20+ is recommended. From this directory:
+Node.js 20+ is recommended. Clone [MeloX-Android](https://github.com/lladlam/MeloX-Android), then run from `plugin-sdk/`:
 
 ```sh
 npm ci
@@ -62,7 +80,7 @@ export default definePlugin({
 ```
 
 Replace the sample endpoint and response fields with your own authorized API.
-This snippet demonstrates an adapter; the [test-tone example source](https://github.com/lladlam/MeloX-Android/tree/main/plugin-sdk/examples/test-tone)
+This snippet demonstrates an adapter; the [test-tone example](https://github.com/lladlam/MeloX-Android/tree/main/plugin-sdk/examples/test-tone)
 is the complete supplied fixture with an actually exercised public audio URL.
 For local SDK use, import `../../src/index.js` as the example does, or build this
 SDK and install its local package in your plugin project. The development package
@@ -73,17 +91,20 @@ is currently marked private and has not been published to npm.
 - `apiVersion`: `1`.
 - `platform`: `android`, `windows` or `web`; the current Android host supplies
   `android`. Windows/Web transports are not implemented in this repository.
-- `http.request({url, method?, headers?, body?})`: Promise of `{status, headers,
+- `http.request({url, method?, headers?, body?, credential?})`: Promise of `{status, headers,
   body}`; body is UTF-8 text, not a browser `Response`. GET/POST only. HTTP error
   statuses are returned; transport/policy failures reject. Cookies are not managed
   globally, and response `Set-Cookie` is not exposed.
-- `storage.get/set/remove`: per-plugin non-secret string storage. Keys match
+- `account`: selected opaque `{id, displayName}` or `null`; never contains tokens.
+  `credential: "active"` requests host-side injection on declared credential domains.
+  Playable/download resolutions may also request `credential: "active"`.
+- `storage.get/set/remove`: per-plugin/account non-secret string storage. Keys match
   `[A-Za-z0-9_.-]{1,128}`; at most 64 keys, 16 KiB/value and 64 KiB total. Use no
-  credentials here: the account vault is not implemented. Storage survives package
+  credentials here: use the host-managed Keystore account vault. Storage survives package
   updates and is retained on uninstall in the current implementation.
 - `log.info/warn/error`: per-runtime in-memory logs; at most 32 entries/call,
   400 characters/entry and 100 retained entries. Script messages are not sent to
-  global logcat. A log viewer is not yet supplied.
+  global logcat. The settings diagnostic viewer shows sanitized event metadata; script log bodies are not retained.
 
 Every invocation starts a fresh JS context. Do not rely on module globals
 surviving calls. There is no DOM, WebView, `fetch`, Node.js, timers or platform SDK
@@ -104,27 +125,29 @@ API. Return Promises; use the host context for asynchronous I/O.
   Throw `PluginError("UNSUPPORTED_OPERATION")` when applicable; do not fabricate
   empty results to claim support.
 
-See the published [Manifest schema](./manifest.schema.json) and
-[protocol schema](./protocol-v1.schema.json). Schemas describe the core wire
-shape; UTF-8 byte limits, permissions and cross-field invariants are additional
-host checks. Kotlin currently uses explicit validators plus shared manifest
-fixtures, not generated classes. Full model conformance is still pending.
+See [Manifest schema](./manifest.schema.json), [protocol schema](./protocol-v1.schema.json) and [SDK types](https://github.com/lladlam/MeloX-Android/blob/main/plugin-sdk/src/types.ts). Schemas describe the
+core wire shape; UTF-8 byte limits, permissions and cross-field invariants are
+additional host checks. Kotlin currently uses explicit validators plus shared
+manifest fixtures, not generated classes. Full model conformance is still pending.
 
 ## Install, update and debug
 
 Android Settings → Extensions → Music source plugins has Import/Update, Enable,
 Disable and Uninstall actions. New installs are disabled. Enabling first loads the
 entry and checks declared methods in the worker, then registers the Provider.
-Select an enabled source in the existing Search screen.
+Select an enabled source in the service center, plugin Settings or existing Search screen.
 
 Updates require the same ID and strictly higher SemVer precedence. The new entry
 is prepared before the existing package is replaced using Android `AtomicFile`.
 A preparation/write failure keeps the previous package; enabled providers are
-swapped in the shared registry. This is not publisher signature verification.
+swapped in the shared registry. RC builds also verify package integrity and optional publisher signatures;
+publisher changes require explicit approval bound to the candidate archive hash. Local TOFU records
+survive uninstall; they are not a global publisher certificate or a guarantee that plugin code is safe.
 
 Disable/uninstall removes the Provider, not saved tracks or listening history.
 Missing sources retain their IDs and fail resolution rather than becoming
 NetEase. Downgrading to older MeloX releases is **not** validated as lossless.
 
-See [protocol v1](./protocol-v1.md) and
-[runtime/security](./runtime-and-security.md).
+See [protocol](./protocol-v1.md),
+[runtime/security](./runtime-and-security.md) and
+[remaining work](https://github.com/lladlam/MeloX-Android/blob/main/docs/plugin-system/remaining-work.md).
